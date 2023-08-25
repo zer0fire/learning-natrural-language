@@ -111,3 +111,71 @@ These Hooks are mostly useful to library authors and aren't commonly used in the
 ## Question
 
 What is the difference between Meta-framework and library
+
+# API Reference - Hooks
+
+`useState` is a React Hook that lets you add a state variable to your component
+
+```js
+import { useState } from "react";
+
+function MyComp() {
+  const [age, setAge] = useState(28);
+  const [name, setName] = useState("Taylor");
+  const [todos, setTodos] = useState(() => createTodos());
+
+  function handleClick() {
+    setName("Taylor");
+    setAge((a) => a + 1);
+  }
+}
+```
+
+`useReducer` is React hook that lets you add a reducer to your component
+
+```js
+function reducer(state, action) {}
+
+function MyComp() {
+  const [state, dispatch] = useReducer(reducer, { age: 42 });
+
+  function handleClick() {
+    dispatch({ type: "increment_age" });
+  }
+}
+```
+
+These two State hooks are all only update the state variable for the next render
+
+`useContext` is a React hooks that lets you read and subscribe to context from your component
+
+```js
+const value = useContext;
+```
+
+State
+`useState`
+`useReducer`
+
+Context
+`useContext`
+
+Reference
+`useRef` export a ref value, not mutable, and it can't trigger rerender in React environment
+`useImperativeHandle` export customize ref
+
+Side Effect
+`useEffect` after DOM change, asynchronous state
+`useInsertionEffect` before DOM change
+`useLayoutEffect` before repaint, synchronous state
+
+Optimization
+`useMemo` memoized a value
+`useCallback` memoized a function
+`useTransition` not important, defer value
+`useDeferredValue`
+
+Other
+`useId` generate id
+`useDebugValue` React devtools, use it set value
+`useSyncExternalStore` subscribe a external state store
