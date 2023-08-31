@@ -114,6 +114,8 @@ What is the difference between Meta-framework and library
 
 # API Reference - Hooks
 
+## State Hooks
+
 `useState` is a React Hook that lets you add a state variable to your component
 
 ```js
@@ -145,13 +147,190 @@ function MyComp() {
 }
 ```
 
+## Context Hooks
+
 These two State hooks are all only update the state variable for the next render
 
 `useContext` is a React hooks that lets you read and subscribe to context from your component
 
 ```js
-const value = useContext;
+const ThemeContext = React.createContext(null);
+
+function MyApp() {
+  const [theme, setTheme] = useState("light");
+
+  return (
+    <ThemeContext.Provider value={theme}>
+      <MyComp />
+    </ThemeContext.Provider>
+  );
+}
+
+function MyComp() {
+  const theme = useContext(ThemeContext);
+  const className = `panel-${theme}`;
+  return (
+    <section className={className}>
+      <h1>title</h1>
+    </section>
+  );
+}
 ```
+
+high level usage
+
+```js
+function MyApp() {
+  const [currentUser, setCurrentUser] = useState(null);
+  const login = useCallback((res) => {
+    storeCredential(res.credentials);
+    setCurrentUser(res.user);
+  }, []);
+  const contextVal = useMemo(() => {
+    currentUser, login;
+  }, [currentUser, login]);
+
+  return (
+    <AuthContext.Provider value={contextVal}>
+      <Page />
+    </AuthContext.Provider>
+  );
+}
+```
+
+`useDeferredValue` defer updating a part of the UI(maybe more like macro task)
+
+Parameters of `useDeferredValue` is `value` that you want to defer
+
+Indicating[表示] that the content is stable
+`useDeferredValue` return a defer value, It can compare with stable value, when the defer value equal the state value, represent the defer value is stable and don't need rerender
+
+```js
+function SearchPage() {
+  const [query, setQuery] = useState("");
+  const [deferredQuery] = useDeferredValue(query);
+  const isStable = query !== deferredQuery;
+  return (
+    <>
+      <Suspense fallback={<h2>loading...</h2>}>
+        <div
+          style={{
+            opacity: isStale ? 0.5 : 1,
+            transition: isStale
+              ? "opacity 0.2s 0.2s linear"
+              : "opacity 0s 0s linear",
+          }}
+        ></div>
+      </Suspense>
+    </>
+  );
+}
+```
+
+`useTransition` update the state without blocking the UI (maybe more like micro task)
+
+```js
+function TabContainer() {
+  const [isPending, startTransition] = useTransition();
+  const [tab, setTab] = useState("about");
+  function selectTab(nextTab) {
+    startTransition(() => {
+      setTab(nextTab);
+    });
+  }
+
+  if (isPending) {
+    return <b className="pending">{children}</b>;
+  }
+}
+```
+
+`useImperativeHandle` customize the handle exposed as a ref
+
+exposing a custom ref handle to the parent component
+
+```js
+const MyInput = forwardRef(function MyInput(props, ref) {
+  const inputRef = (useRef = null);
+  useImperativeHandle(
+    ref,
+    () => {
+      return {
+        // ...method
+        focus() {
+          inputRef.current.focus();
+        },
+        scrollIntoView() {
+          inputRef.current.scrollIntoView();
+        },
+      };
+    },
+    []
+  );
+  return <input {...props} ref={inputRef} />;
+});
+```
+
+exposing your own imperative methods
+
+```js
+const Post = forwardRef((props, ref) => {
+  const commentsRef = useRef(null);
+  const addCommentsRef = useRef(null);
+
+  useImperativeHandle(
+    ref,
+    () => {
+      return {
+        scrollAndFocusAddComment() {
+          commentRef.current.scrollToBottom();
+          addCommentsRef.current.focus();
+        },
+      };
+    },
+    []
+  );
+  return (
+    <Comment ref={commentsRef} />
+    <AddComment ref={addCommentsRef} />
+  )
+});
+```
+
+`useInsertionEffect` allows inserting elements into the DOM before any layout effects fire
+
+injecting dynamic styles from CSS-in-JS libraries
+
+`useEffect` and `useInsertionEffect` don't run on the server. If app need to collect which CSS rules have been used on the server, you can do it during rendering
+
+```js
+// server
+let collectedRulesSet = new Set();
+
+let isInserted = new Set();
+function useCss(rule) {
+  if (typeof window === "undefined") {
+    collectedRulesSet.add(rule);
+  }
+
+  useInsertionEffect(() => {
+    if (!isInserted.has(rule)) {
+      isInserted.add(rule);
+      document.head.appendChild(getStyleForRule(rule));
+    }
+  });
+  return rule;
+}
+
+function Button() {
+  const className = useCss("...");
+  return <div className={className}></div>;
+}
+```
+
+`useRef` reference a value that's not needed for rendering
+
+# Conclusion
 
 State
 `useState`
@@ -173,7 +352,7 @@ Optimization
 `useMemo` memoized a value
 `useCallback` memoized a function
 `useTransition` not important, defer value
-`useDeferredValue`
+`useDeferredValue` defer updating a part of the UI
 
 Other
 `useId` generate id
