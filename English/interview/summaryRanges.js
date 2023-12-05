@@ -1,4 +1,3 @@
-w;
 /**
  * @param {number[]} nums
  * @return {string[]}
